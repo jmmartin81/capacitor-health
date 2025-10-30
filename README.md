@@ -6,6 +6,20 @@ Capacitor plugin to query data from Apple Health and Google Health Connect
 
 Some parts, concepts and ideas are borrowed from [cordova-plugin-health](https://github.com/dariosalvi78/cordova-plugin-health/). Big thanks to [@dariosalvi78](https://github.com/dariosalvi78) for the support.
 
+## Changes from Original (Fork)
+
+This fork includes the following enhancements:
+
+- **querySamples()** - New method to query granular health data samples with minute/second precision. Allows querying specific health metrics (steps, heart rate, blood glucose, oxygen saturation, respiratory rate, body measurements, blood pressure) with finer time resolution compared to aggregated data.
+  - Supports multiple data types via `HealthSampleType`
+  - Includes optional `limit` parameter to control result set size
+  - Returns detailed sample data with timestamps, values, units, and source information
+  - Useful for applications requiring detailed health tracking and analytics
+
+- **Updated health permissions** - Added support for additional health data types including `READ_MINDFULNESS`, `READ_TOTAL_CALORIES`, and `READ_ACTIVE_CALORIES`
+
+- **Enhanced Android manifest configuration** - Improved Health Connect integration for Android 14+ with proper queries and activity aliases
+
 ## Install
 
 ```bash
@@ -75,6 +89,7 @@ npx cap sync
 * [`showHealthConnectInPlayStore()`](#showhealthconnectinplaystore)
 * [`queryAggregated(...)`](#queryaggregated)
 * [`queryWorkouts(...)`](#queryworkouts)
+* [`querySamples(...)`](#querysamples)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -208,6 +223,23 @@ Query workouts
 --------------------
 
 
+### querySamples(...)
+
+```typescript
+querySamples(request: QuerySamplesRequest) => Promise<QuerySamplesResponse>
+```
+
+Query granular samples data with minute/second precision. This method allows querying health data at a more granular level compared to aggregated data.
+
+| Param         | Type                                                                    |
+| ------------- | ----------------------------------------------------------------------- |
+| **`request`** | <code><a href="#querysamplesrequest">QuerySamplesRequest</a></code>    |
+
+**Returns:** <code>Promise&lt;<a href="#querysamplesresponse">QuerySamplesResponse</a>&gt;</code>
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -303,11 +335,48 @@ Query workouts
 | **`includeRoute`**     | <code>boolean</code> |
 
 
+#### QuerySamplesRequest
+
+| Prop            | Type                                                   |
+| --------------- | ------------------------------------------------------ |
+| **`dataType`**  | <code><a href="#healthsampletype">HealthSampleType</a></code> |
+| **`startDate`** | <code>string</code>                                    |
+| **`endDate`**   | <code>string</code>                                    |
+| **`limit`**     | <code>number</code>                                    |
+| **`unit`**      | <code>string</code>                                    |
+
+
+#### QuerySamplesResponse
+
+| Prop          | Type                      |
+| ------------- | ------------------------- |
+| **`samples`** | <code>Sample[]</code>     |
+
+
+#### Sample
+
+| Prop           | Type                                                   |
+| -------------- | ------------------------------------------------------ |
+| **`value`**    | <code>number</code>                                    |
+| **`unit`**     | <code>string</code>                                    |
+| **`startDate`**| <code>string</code>                                    |
+| **`endDate`**  | <code>string</code>                                    |
+| **`dataType`** | <code><a href="#healthsampletype">HealthSampleType</a></code> |
+| **`source`**   | <code>string</code>                                    |
+| **`device`**   | <code>string</code>                                    |
+| **`uuid`**     | <code>string</code>                                    |
+
+
 ### Type Aliases
 
 
 #### HealthPermission
 
-<code>'READ_STEPS' | 'READ_WORKOUTS' | 'READ_CALORIES' | 'READ_DISTANCE' | 'READ_HEART_RATE' | 'READ_ROUTE'</code>
+<code>'READ_STEPS' | 'READ_WORKOUTS' | 'READ_ACTIVE_CALORIES' | 'READ_TOTAL_CALORIES' | 'READ_DISTANCE' | 'READ_HEART_RATE' | 'READ_ROUTE' | 'READ_MINDFULNESS'</code>
+
+
+#### HealthSampleType
+
+<code>'steps' | 'heartRate' | 'activeEnergyBurned' | 'distanceWalkingRunning' | 'bloodGlucose' | 'oxygenSaturation' | 'restingHeartRate' | 'respiratoryRate' | 'bodyMass' | 'bodyFatPercentage' | 'bloodPressureSystolic' | 'bloodPressureDiastolic'</code>
 
 </docgen-api>

@@ -16,7 +16,9 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "requestHealthPermissions", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "openAppleHealthSettings", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "queryAggregated", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "queryWorkouts", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "queryWorkouts", returnType: CAPPluginReturnPromise),
+      // NEW: Add querySamples method
+        CAPPluginMethod(name: "querySamples", returnType: CAPPluginReturnPromise)
     ]
     
     let healthStore = HKHealthStore()
@@ -564,5 +566,116 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
         84 : "underwaterDiving" ,
         3000 : "other"
     ]
+   // NEW: HealthKit type mapping for granular data
+    private func getQuantityType(for dataType: String) -> HKQuantityType? {
+        switch dataType {
+        case "steps":
+            return HKQuantityType.quantityType(forIdentifier: .stepCount)
+        case "heartRate":
+            return HKQuantityType.quantityType(forIdentifier: .heartRate)
+        case "restingHeartRate":
+            return HKQuantityType.quantityType(forIdentifier: .restingHeartRate)
+        case "activeEnergyBurned":
+            return HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)
+        case "distanceWalkingRunning":
+            return HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning)
+        case "bloodGlucose":
+            return HKQuantityType.quantityType(forIdentifier: .bloodGlucose)
+        case "oxygenSaturation":
+            return HKQuantityType.quantityType(forIdentifier: .oxygenSaturation)
+        case "respiratoryRate":
+            return HKQuantityType.quantityType(forIdentifier: .respiratoryRate)
+        case "bodyMass":
+            return HKQuantityType.quantityType(forIdentifier: .bodyMass)
+        case "bodyFatPercentage":
+            return HKQuantityType.quantityType(forIdentifier: .bodyFatPercentage)
+        case "bloodPressureSystolic":
+            return HKQuantityType.quantityType(forIdentifier: .bloodPressureSystolic)
+        case "bloodPressureDiastolic":
+            return HKQuantityType.quantityType(forIdentifier: .bloodPressureDiastolic)
+        default:
+            return nil
+        }
+    }
     
+    private func getUnit(for dataType: String) -> HKUnit {
+        switch dataType {
+        case "steps":
+            return HKUnit.count()
+        case "heartRate", "restingHeartRate", "respiratoryRate":
+            return HKUnit(from: "count/min")
+        case "activeEnergyBurned":
+            return HKUnit.kilocalorie()
+        case "distanceWalkingRunning":
+            return HKUnit.meter()
+        case "bloodGlucose":
+            return HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassBloodGlucose).unitDivided(by: HKUnit.liter())
+        case "oxygenSaturation", "bodyFatPercentage":
+            return HKUnit.percent()
+        case "bodyMass":
+            return HKUnit.gramUnit(with: .kilo)
+        case "bloodPressureSystolic", "bloodPressureDiastolic":
+            return HKUnit.millimeterOfMercury()
+        default:
+            return HKUnit.count()
+        }
+    }
+    
+    // NEW: querySamples implementation for granular data
+    @objc func querySamples(_ call: CAPPluginCall) {
+        guard let dataType = call.getString("dataType"),
+              let startDateString = call.getString("startDate"),
+              let endDateString = call.getString("endDate") else {
+            call.reject("Missing required parameters: dataType, startDate, endDate")
+            return
+        }
+        
+        let limit = call.getInt("limit") ?? HKObjectQueryNoLimit
+        
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        guard let startDate = formatter.date(from: startDateString),
+              let endDate = formatter.date(from: endDateString),
+              let quantityType = getQuantityType(for: dataType) else {
+            call.reject("Invalid parameters: dates or dataType")
+            return
+        }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        
+        let query = HKSampleQuery(sampleType: quantityType, 
+                                predicate: predicate, 
+                                limit: limit, 
+                                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]) { (_, samples, error) in
+            
+            if let error = error {
+                call.reject("HealthKit query error: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let samples = samples as? [HKQuantitySample] else {
+                call.resolve(["samples": []])
+                return
+            }
+            
+            let unit = self.getUnit(for: dataType)
+            let samplesData = samples.map { sample -> [String: Any] in
+                return [
+                    "uuid": sample.uuid.uuidString,
+                    "value": sample.quantity.doubleValue(for: unit),
+                    "unit": unit.unitString,
+                    "startDate": formatter.string(from: sample.startDate),
+                    "endDate": formatter.string(from: sample.endDate),
+                    "dataType": dataType,
+                    "source": sample.sourceRevision.source.name,
+                    "device": sample.device?.name ?? "unknown"
+                ]
+            }
+            
+            call.resolve(["samples": samplesData])
+        }
+        
+        healthStore.execute(query)
+    }
 }

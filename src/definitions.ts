@@ -55,6 +55,12 @@ export interface HealthPlugin {
    * @param request
    */
   queryWorkouts(request: QueryWorkoutRequest): Promise<QueryWorkoutResponse>;
+
+  /**
+   * NEW: Query granular samples data with minute/second precision
+   * @param request
+   */
+  querySamples(request: QuerySamplesRequest): Promise<QuerySamplesResponse>;
 }
 
 export declare type HealthPermission =
@@ -130,3 +136,41 @@ export interface AggregatedSample {
   endDate: string;
   value: number;
 }
+
+// NEW: Types for granular samples query
+export interface QuerySamplesRequest {
+  dataType: HealthSampleType;
+  startDate: string;
+  endDate: string;
+  limit?: number;
+  unit?: string;
+}
+
+export interface QuerySamplesResponse {
+  samples: Sample[];
+}
+
+export interface Sample {
+  value: number;
+  unit: string;
+  startDate: string;
+  endDate: string;
+  dataType: HealthSampleType;
+  source?: string;
+  device?: string;
+  uuid?: string; // iOS specific
+}
+
+export declare type HealthSampleType =
+  | 'steps'
+  | 'heartRate'
+  | 'activeEnergyBurned'
+  | 'distanceWalkingRunning'
+  | 'bloodGlucose'
+  | 'oxygenSaturation'
+  | 'restingHeartRate'
+  | 'respiratoryRate'
+  | 'bodyMass'
+  | 'bodyFatPercentage'
+  | 'bloodPressureSystolic'
+  | 'bloodPressureDiastolic';

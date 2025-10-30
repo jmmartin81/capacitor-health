@@ -1,44 +1,54 @@
 {
-  "name": "capacitor-health",
-  "version": "7.0.0",
-  "description": "Capacitor plugin for Apple Health and Google Health Connect",
+  "name": "@jmmartin81/capacitor-health",
+  "version": "0.0.1",
+  "description": "Capacitor plugin for HealthKit/Health Connect",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "unpkg": "dist/plugin.js",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/plugin.cjs.js",
+      "default": "./dist/esm/index.js"
+    }
+  },
   "files": [
     "android/src/main/",
     "android/build.gradle",
     "dist/",
-    "ios/Sources",
-    "ios/Tests",
-    "Package.swift",
+    "ios/Plugin/",
+    "ios/Plugin/Plugin.swift",
     "CapacitorHealth.podspec"
   ],
-  "author": "Martin",
+  "author": "JMM",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mley/capacitor-health.git"
+    "url": "git+https://github.com/@jmmartin81/capacitor-health.git"
   },
   "bugs": {
-    "url": "https://github.com/mley/capacitor-health/issues"
+    "url": "https://github.com/@jmmartin81/capacitor-health/issues"
   },
   "keywords": [
     "capacitor",
     "plugin",
-    "native"
+    "native",
+    "health",
+    "healthkit",
+    "health-connect",
+    "granular-data"
   ],
   "scripts": {
     "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
-    "verify:ios": "xcodebuild -scheme CapacitorHealth -destination generic/platform=iOS",
-    "verify:android": "cd android && ./gradlew clean build test && cd ..",
+    "verify:ios": "cd ios && xcodebuild -scheme Plugin -destination generic/platform=iOS",
+    "verify:android": "cd android && ./gradlew clean build && cd ..",
     "verify:web": "npm run build",
-    "lint": "npm run eslint && npm run prettier -- --check && npm run swiftlint -- lint",
-    "fmt": "npm run eslint -- --fix && npm run prettier -- --write && npm run swiftlint -- --fix --format",
+    "lint": "npm run eslint && npm run prettier -- --check",
+    "fmt": "npm run eslint -- --fix && npm run prettier -- --write",
     "eslint": "eslint . --ext ts",
-    "prettier": "prettier \"**/*.{css,html,ts,js,java}\" --plugin=prettier-plugin-java",
-    "swiftlint": "node-swiftlint",
+    "prettier": "prettier \"**/*.{css,html,ts,js,java}\"",
     "docgen": "docgen --api HealthPlugin --output-readme README.md --output-json dist/docs.json",
     "build": "npm run clean && tsc && rollup -c rollup.config.mjs",
     "clean": "rimraf ./dist",
@@ -52,20 +62,16 @@
     "@capacitor/ios": "^7.0.0",
     "@ionic/eslint-config": "^0.4.0",
     "@ionic/prettier-config": "^4.0.0",
-    "@ionic/swiftlint-config": "^2.0.0",
     "eslint": "^8.57.0",
     "prettier": "^3.4.2",
-    "prettier-plugin-java": "^2.6.6",
     "rimraf": "^6.0.1",
     "rollup": "^4.30.1",
-    "swiftlint": "^2.0.0",
     "typescript": "~4.1.5"
   },
   "peerDependencies": {
     "@capacitor/core": ">=7.0.0"
   },
   "prettier": "@ionic/prettier-config",
-  "swiftlint": "@ionic/swiftlint-config",
   "eslintConfig": {
     "extends": "@ionic/eslint-config/recommended"
   },
