@@ -1,5 +1,5 @@
 # node files
-dist
+# dist - commented out to allow npm to download compiled files
 node_modules
 
 # iOS files
