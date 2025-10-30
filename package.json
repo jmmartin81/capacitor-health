@@ -15,21 +15,20 @@
     }
   },
   "files": [
-    "android/src/main/",
-    "android/build.gradle",
+    "android/",
     "dist/",
-    "ios/Plugin/",
-    "ios/Plugin/Plugin.swift",
-    "CapacitorHealth.podspec"
+    "ios/",
+    "CapacitorHealth.podspec",
+    "Jmmartin81CapacitorHealth.podspec"
   ],
   "author": "JMM",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/@jmmartin81/capacitor-health.git"
+    "url": "git+https://github.com/jmmartin81/capacitor-health.git"
   },
   "bugs": {
-    "url": "https://github.com/@jmmartin81/capacitor-health/issues"
+    "url": "https://github.com/jmmartin81/capacitor-health/issues"
   },
   "keywords": [
     "capacitor",
